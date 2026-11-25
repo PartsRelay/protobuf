@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package partsrelay.public_api.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// The orders of the seller: placed here, or confirmed by a workshop on
+// WhatsApp. A key reads and places only the orders of its mode, test or live.
+// The metadata and the trailers are the ones of ArticleService.
+service OrderService {
+  // Places an order once for an idempotency key: the same key with the same
+  // order answers that order again, with another order it fails with
+  // INVALID_ARGUMENT "idempotency-key-reused".
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+  // A page of the orders by id, oldest first.
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+}
+
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  // Kept, not yet answered by the seller's management system.
+  ORDER_STATUS_CONFIRMED = 1;
+  // Cancelled by the workshop on WhatsApp.
+  ORDER_STATUS_CANCELLED = 2;
+  // Accepted by the seller's management system.
+  ORDER_STATUS_ACCEPTED = 3;
+  // Refused by the seller's management system.
+  ORDER_STATUS_REJECTED = 4;
+}
+
+message Order {
+  message Item {
+    // True for an OE code, ordered without a brand.
+    bool original = 1;
+    string code = 2;
+    optional string brand = 3;
+    optional string description = 4;
+    int32 quantity = 5;
+  }
+
+  // The workshop that ordered on WhatsApp.
+  message Customer {
+    int64 id = 1;
+    string phone = 2;
+    optional string name = 3;
+  }
+
+  // The search the workshop ordered from on WhatsApp.
+  message Search {
+    optional string plate = 1;
+    optional string vin = 2;
+    optional string query = 3;
+  }
+
+  int64 id = 1;
+  OrderStatus status = 2;
+  optional string reference = 3;
+  // The id the seller's management system gave the order.
+  optional string external_id = 4;
+  // Only on an order of WhatsApp.
+  Customer customer = 5;
+  // Only on an order of WhatsApp.
+  Search search = 6;
+  repeated Item items = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message CreateOrderRequest {
+  message Item {
+    // 1 to 64 characters.
+    string code = 1;
+    // 1 to 64 characters; without it the code is an OE code.
+    optional string brand = 2;
+    // At most 255 characters.
+    optional string description = 3;
+    // 1 to 9999.
+    int32 quantity = 4;
+  }
+
+  // 1 to 255 visible ASCII characters, unique for the company and the mode;
+  // without it the call fails with INVALID_ARGUMENT "idempotency-key-required".
+  string idempotency_key = 1;
+  // The reference of the caller, 1 to 64 characters.
+  optional string reference = 2;
+  // 1 to 100 items.
+  repeated Item items = 3;
+}
+
+message CreateOrderResponse {
+  Order order = 1;
+  // True when the idempotency key had already placed this order.
+  bool replayed = 2;
+}
+
+message ListOrdersRequest {
+  // 1 by default.
+  optional int32 page = 1;
+  // 1 to 100, 20 by default.
+  optional int32 per_page = 2;
+  // Only the orders of this status, every status when unspecified.
+  OrderStatus status = 3;
+}
+
+message ListOrdersResponse {
+  repeated Order orders = 1;
+  // The orders of every page.
+  int32 total = 2;
+}
