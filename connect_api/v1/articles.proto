@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package connect_api.v1;
+
+// The articles of a seller, read from its management system at every call.
+//
+// The Parts Relay core and connect speak this API to each other in their
+// private network: standard gRPC over HTTP/2, with no key. Every call names
+// the company in the metadata "workspace-id", its id as a number.
+//
+// A failed call tells why in its status: INVALID_ARGUMENT without a readable
+// "workspace-id" or with a refused field, UNAVAILABLE or DEADLINE_EXCEEDED
+// when the management system does not answer, and INTERNAL for anything else.
+service ArticleService {
+  // A page of the articles, or only the ones of some codes.
+  rpc ListArticles(ListArticlesRequest) returns (ListArticlesResponse);
+}
+
+message ListArticlesRequest {
+  // 1 by default.
+  optional int32 page = 1;
+  // 1 to 100, 20 by default.
+  optional int32 per_page = 2;
+  // Only the articles of these codes, the first 100.
+  repeated string codes = 3;
+}
+
+message ListArticlesResponse {
+  repeated Article articles = 1;
+  // The articles of every page.
+  int32 total = 2;
+}
+
+message Article {
+  // The id of the article in the management system, as a text.
+  string id = 7;
+  string brand = 1;
+  string code = 2;
+  optional string description = 3;
+  // The quantity available.
+  int32 quantity = 4;
+  // The price of one piece, like 48.9.
+  optional double price = 5;
+  // ISO 4217, like "EUR".
+  optional string currency = 6;
+}

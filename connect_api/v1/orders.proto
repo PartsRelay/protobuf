@@ -1,12 +1,11 @@
 syntax = "proto3";
 
-package partsrelay.public_api.v1;
+package connect_api.v1;
 
 import "google/protobuf/timestamp.proto";
 
-// The orders of the seller: placed here, or confirmed by a workshop on
-// WhatsApp. A key reads and places only the orders of its mode, test or live.
-// The metadata and the trailers are the ones of ArticleService.
+// The orders of a seller: placed here, or confirmed by a workshop on
+// WhatsApp. The metadata and the statuses are the ones of ArticleService.
 service OrderService {
   // Places an order once for an idempotency key: the same key with the same
   // order answers that order again, with another order it fails with
@@ -78,7 +77,7 @@ message CreateOrderRequest {
     int32 quantity = 4;
   }
 
-  // 1 to 255 visible ASCII characters, unique for the company and the mode;
+  // 1 to 255 visible ASCII characters, unique for the company;
   // without it the call fails with INVALID_ARGUMENT "idempotency-key-required".
   string idempotency_key = 1;
   // The reference of the caller, 1 to 64 characters.
