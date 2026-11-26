@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package partsrelay.connect_api.v1;
+package connect_api.v1;
 
 import "google/protobuf/timestamp.proto";
 

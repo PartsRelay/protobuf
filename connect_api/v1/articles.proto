@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package partsrelay.connect_api.v1;
+package connect_api.v1;
 
 // The articles of a seller, read from its management system at every call.
 //
@@ -32,18 +32,15 @@ message ListArticlesResponse {
 }
 
 message Article {
-  // The id of the article in the management system, a number or a text.
-  oneof id {
-    int64 id_number = 7;
-    string id_text = 8;
-  }
+  // The id of the article in the management system, as a text.
+  string id = 7;
   string brand = 1;
   string code = 2;
   optional string description = 3;
   // The quantity available.
   int32 quantity = 4;
-  // A decimal, like "48.90".
-  optional string price = 5;
+  // The price of one piece, like 48.9.
+  optional double price = 5;
   // ISO 4217, like "EUR".
   optional string currency = 6;
 }
